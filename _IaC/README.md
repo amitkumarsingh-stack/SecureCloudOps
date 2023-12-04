@@ -13,6 +13,6 @@ Terraform Configurations
 * Configuration: Set up your Azure credentials and environment variables.
 * Deployment: Use Terraform commands (terraform init, terraform plan, terraform apply) to deploy resources.
 # Contribution Guidelines
-I encourage contributions! If you have enhancements, bug fixes, or additional Terraform configurations for Azure, feel free to submit pull requests. Refer to CONTRIBUTING.md for guidelines.
+I encourage contributions! If you have enhancements, bug fixes, or additional Terraform configurations for Azure/AWS, feel free to submit pull requests. Refer to CONTRIBUTING.md for guidelines.
 
 Happy Terraforming in Azure!
