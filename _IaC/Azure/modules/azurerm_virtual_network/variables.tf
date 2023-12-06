@@ -10,7 +10,7 @@ variable "location" {
 
 variable "tags" {
   description = "The tags to associate the resource we are creating"
-  type        = "map"
+  type        = map
   default     = {}
 }
 

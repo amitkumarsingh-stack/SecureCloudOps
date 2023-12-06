@@ -10,7 +10,7 @@ variable "location" {
 
 variable "default_tags" {
   description = ""
-  type        = "map"
+  type        = map
   default     = {}
 }
 
