@@ -5,7 +5,7 @@ resource "azurerm_resource_group" "resource_group" {
 }
 
 module "application-vnet" {
-  source              = "./modules/vnet"
+  source              = "./modules/azurerm_virtual_network"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   location            = "${var.location}"
   tags                = "${merge(var.default_tags, map("type", "network"))}"
