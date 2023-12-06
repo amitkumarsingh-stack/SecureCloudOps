@@ -1,14 +1,14 @@
 resource "azurerm_resource_group" "resource_group" {
   name     = "${var.application}-${var.environment}"
   location = "${var.location}"
-  tags     = "${merge(var.default_tags, map("type", "resource"))}"
+  tags     = "${var.default_tags}"
 }
 
 module "application-vnet" {
   source              = "./modules/azurerm_virtual_network"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   location            = "${var.location}"
-  tags                = "${merge(var.default_tags, map("type", "network"))}"
+  tags                = "${var.default_tags}"
   vnet_name           = "${azurerm_resource_group.resource_group.name}-vnet"
   address_space       = "${var.address_space}"
 }

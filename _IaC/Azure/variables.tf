@@ -9,9 +9,13 @@ variable "location" {
 }
 
 variable "default_tags" {
-  description = ""
-  type        = map
-  default     = {}
+  type    = map(string)
+  default = {
+    Environment = "Production"
+    Department  = "IT"
+    Owner       = "John Doe"
+    // Add more key-value pairs as needed
+  }
 }
 
 variable "address_space" {

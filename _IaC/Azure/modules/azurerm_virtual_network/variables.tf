@@ -8,11 +8,16 @@ variable "location" {
   default     = ""
 }
 
-variable "tags" {
-  description = "The tags to associate the resource we are creating"
-  type        = map
-  default     = {}
+variable "default_tags" {
+  type    = map(string)
+  default = {
+    Environment = "Production"
+    Department  = "IT"
+    Owner       = "John Doe"
+    // Add more key-value pairs as needed
+  }
 }
+
 
 # Everything below is for the module
 
