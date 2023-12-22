@@ -43,7 +43,7 @@ variables:
   storageAccount: amitdevopspipeline
   storageAccountSku: Standard_LRS
   container: statefile
-  tfstateFile: Z+64BTs79khDzH7grBbv4JCGknwcMhpibwhMUv2bKSaUiQ9oeJPuNPn6/+ajTc8Dk8pd2pCKq2Nq+ASteWoUMg==
+  tfstateFile: $(tfstateFile)   # Add storage Key to Pipeline variable
   BuildAgent: ubuntu-latest
   terraform_ver: latest
   workingDir: $(System.DefaultWorkingDirectory)/Terraform
