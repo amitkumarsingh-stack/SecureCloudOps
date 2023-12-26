@@ -43,6 +43,10 @@ This pipeline is triggered on changes to the following branches:
 The pipeline uses the specified Build Agent image for the build stages.
 
 ## Stages
+### Run Terrascan
+* __Get tools__: Downloads Terrascan from its GitHub release page, extracts the files, and installs Terrascan to /usr/local/bin.
+* __Run terrascan__: Executes Terrascan to perform a compliance scan on Terraform files targeting Azure (-t azure) using Terraform as input (-i terraform).
+
 ### PUBLISH_PLAN
 * __Install Terraform__: Installs the specified Terraform version.
 * __Terraform Init__: Initializes Terraform with the Azure Storage Backend.

@@ -37,13 +37,12 @@ variables:
     getTfVars: -var-file=dev.tfvars
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/staging') }}:
     getTfVars: -var-file=staging.tfvars
-  runDestroy: flase                                           # Set default value to false, change as needed
-  ServiceConnection: MCT_Sub_Pipeline_Learning                # Create ServiceConnection with name "MCT_Sub_Pipeline_Learning"
-  resourceGroup: Tanzu                                        # RG where Storage Account is present and manage State file
-  storageAccount: amitdevopspipeline                          # Name of Storage Account
-  storageAccountSku: Standard_LRS                             # SKU of Storage Account (Optional)
-  container: statefile                                        # Name of Container inside Storage Account
-#  tfstateFile: $(tfstateFile)   # Add storage Key to Pipeline variable with name "tfstateFile"
+  runDestroy: flase # Set default value to false, change as needed
+  ServiceConnection: MCT_Sub_Pipeline_Learning
+  resourceGroup: Tanzu
+  storageAccount: amitdevopspipeline
+  storageAccountSku: Standard_LRS
+  container: statefile
   BuildAgent: ubuntu-latest
   terraform_ver: latest
   workingDir: $(System.DefaultWorkingDirectory)/Terraform
@@ -62,18 +61,36 @@ pool:
 ###################
 stages:
 
+- stage: validate
+
+  jobs:
+  - job: Compliance
+    displayName: 'Run Terrascan to check for compliance'
+    pool: 
+      vmImage: 'ubuntu-latest'
+  
+    steps:
+    - script: |
+        curl --location https://github.com/accurics/terrascan/releases/download/v1.3.1/terrascan_1.3.1_Linux_x86_64.tar.gz --output terrascan.tar.gz
+        tar -xvf terrascan.tar.gz
+        sudo install terrascan /usr/local/bin    
+      displayName: 'Get tools'
+
+    - script: |
+        terrascan scan -t azure -i terraform
+      workingDirectory: $(System.DefaultWorkingDirectory)/Terraform
+      displayName: 'Run terrascan' 
+
 - stage: PUBLISH_PLAN
   jobs:
   - job: PUBLISH
     displayName: PUBLISH
     steps:
-
 # Install Terraform Installer in the Build Agent:-
     - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
       displayName: INSTALL TERRAFORM VERSION
       inputs:
         terraformVersion: '$(terraform_ver)'
-
 # Terraform Init:-
     - task: TerraformCLI@0
       displayName: TERRAFORM INIT
@@ -86,7 +103,6 @@ stages:
         backendAzureRmStorageAccountName: '$(storageAccount)'
         backendAzureRmContainerName: '$(container)'
         backendAzureRmKey: '$(tfstateFile)'
-
 # Terraform Validate:-
     - task: TerraformCLI@0
       displayName: TERRAFORM VALIDATE
@@ -112,13 +128,11 @@ stages:
   - job: BUILD
     displayName: BUILD
     steps:
-
 # Install Terraform Installer in the Build Agent:-
     - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
       displayName: INSTALL TERRAFORM VERSION
       inputs:
         terraformVersion: '$(terraform_ver)'
-
 # Terraform Init:-
     - task: TerraformCLI@0
       displayName: TERRAFORM INIT
@@ -131,7 +145,6 @@ stages:
         backendAzureRmStorageAccountName: '$(storageAccount)'
         backendAzureRmContainerName: '$(container)'
         backendAzureRmKey: '$(tfstateFile)'
-
 # Terraform Validate:-
     - task: TerraformCLI@0
       displayName: TERRAFORM VALIDATE
@@ -162,7 +175,6 @@ stages:
           **/*.tfvars
           **/*tfplan*
         TargetFolder: '$(target)'
-        
 # Publish Artifacts:-
     - task: PublishBuildArtifacts@1
       displayName: PUBLISH ARTIFACTS
@@ -194,13 +206,11 @@ stages:
               downloadType: 'single'
               artifactName: '$(artifact)'
               downloadPath: '$(System.ArtifactsDirectory)' 
-
 # Install Terraform Installer in the Build Agent:-
           - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
             displayName: INSTALL TERRAFORM VERSION
             inputs:
               terraformVersion: '$(terraform_ver)'
-
 # Terraform Init:-
           - task: TerraformCLI@0
             displayName: TERRAFORM INIT
@@ -244,13 +254,11 @@ stages:
               downloadType: 'single'
               artifactName: '$(artifact)'
               downloadPath: '$(System.ArtifactsDirectory)' 
-
 # Install Terraform Installer in the Build Agent:-
           - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
             displayName: INSTALL TERRAFORM VERSION
             inputs:
               terraformVersion: '$(terraform_ver)'
-              
 # Terraform Init:-
           - task: TerraformCLI@0
             displayName: TERRAFORM INIT
