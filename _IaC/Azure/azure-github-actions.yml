@@ -1,0 +1,67 @@
+name: 'Terraform-action' # Name of the GitHub Actions workflow
+
+on:
+  push:
+    branches:
+      - main
+    # paths: # Conditional trigger based on path changes
+    #   - '**/actions/terraform-azure/**'
+  pull_request: # Triggered on pull requests
+  workflow_dispatch: # Triggered manually
+
+jobs:
+  terraform_plan: # Name of the job
+    name: 'Terraform' # Display name for the job
+    runs-on: ubuntu-latest # Runner OS for the job
+    environment: production # Environment where the job runs
+    env: # Environment variables used in the job
+      ROOT_PATH: './Terraform' # Root path for Terraform files
+      ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}} # Azure Client ID stored in secrets
+      ARM_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}} # Azure Client Secret stored in secrets
+      ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBCRIPTION_ID}} # Azure Subscription ID stored in secrets
+      ARM_TENANT_ID: ${{secrets.AZURE_TENANT_ID}} # Azure Tenant ID stored in secrets
+      # Determines the Terraform variables file based on push event and branch
+      TFVARS_FILE: ${{ github.event_name == 'push' && contains(github.event.ref, 'main') && 'prod.tfvars' ||
+                    github.event_name == 'push' && contains(github.event.ref, 'staging') && 'staging.tfvars' ||
+                    'dev.tfvars' }}
+
+    defaults: # Default settings for all steps
+      run: # Shell type for all run commands
+        shell: bash
+
+    steps: # List of steps to execute
+      - name: checkout # Checkout the repository to the GitHub Actions runner
+        uses: actions/checkout@v2 # Uses the checkout action version 2
+
+      - name: terraform # Initializes Terraform in the specified directory
+        uses: robertdebock/terraform-action@1.1.2
+        with:
+          action: init
+          directory: ${{env.ROOT_PATH}}
+
+      - name: terraform validate # Validates the Terraform configuration
+        uses: robertdebock/terraform-action@1.1.2
+        with:
+          action: validate
+          directory: ${{env.ROOT_PATH}}
+
+      - name: Get Terrascan # Downloads and installs Terrascan
+        run: |
+          curl --location https://github.com/accurics/terrascan/releases/download/v1.3.1/terrascan_1.3.1_Linux_x86_64.tar.gz --output terrascan.tar.gz
+          tar -xvf terrascan.tar.gz
+          sudo install terrascan /usr/local/bin
+
+      - name: Run terrascan # Scans Terraform files using Terrascan
+        run: | 
+          terrascan scan -t azure -i terraform
+        working-directory: ${{ env.ROOT_PATH }}
+
+      - name: terraform plan # Generates Terraform execution plan
+        run: |
+          terraform plan -var-file=${{env.TFVARS_FILE}}
+        working-directory: ${{ env.ROOT_PATH }}
+
+      - name: terraform apply # Applies Terraform changes
+        run: |
+          terraform apply -var-file=${{env.TFVARS_FILE}} -auto-approve
+        working-directory: ${{ env.ROOT_PATH }}
