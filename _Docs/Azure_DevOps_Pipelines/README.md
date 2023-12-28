@@ -14,8 +14,7 @@ Continuous Delivery (CD) is a process by which code is built, tested, and deploy
 | Build faster by splitting test and build runs | Ensure deployment targets have latest code |
 | Automatically ensure you don't ship broken code | Use tested code from CI process |
 | Run tests continually |  |
+|  |  |
 
 ## Key Concepts
-<img title="Azure DevOps Pipeline" alt="Alt text" src="/_Docs/images/Pipeline1.png">
-
-<img title="Azure DevOps Pipeline" alt="Alt text" src="/_Docs/images/Pipeline1.png>
+![Alt text](Pipeline1.png)
