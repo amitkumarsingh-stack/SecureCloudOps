@@ -83,3 +83,5 @@ A trigger is something that's set up to tell the pipeline when to run.
 
 ### Library
 The Library includes secure files and variable groups. Secure files are a way to store files and share them across pipelines.
+
+![Alt text](/_Docs/Azure_DevOps_Pipelines/images/azure-devops-pipelines-azure-devops.pdf)
