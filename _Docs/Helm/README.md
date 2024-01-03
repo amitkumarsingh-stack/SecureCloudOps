@@ -95,3 +95,26 @@ helm get manifest <release> # A manifest is a YAML-encoded representation of the
 helm get notes <release>    # Shows notes provided by the chart of a named release.
 helm get values <release>   # Downloads a values file for a given release. use -o to format output
 ```
+
+### Helm Chart Structure
+```
+└── basechart
+    ├── .helmignore
+    ├── Chart.yaml                      # A YAML file containing information about the chart
+    ├── LICENSE                         # OPTIONAL: A plain text file containing the license for the chart
+    ├── README.md                       # OPTIONAL: A human-readable README file
+    ├── charts                          # A directory containing any charts upon which this chart depends.
+    ├── templates                       # A directory of templates that, when combined with values, will generate valid Kubernetes manifest files.
+    │   ├── NOTES.txt
+    │   ├── _helpers.tpl                
+    │   ├── deployment.yaml
+    │   ├── hpa.yaml
+    │   ├── ingress.yaml
+    │   ├── service.yaml
+    │   ├── serviceaccount.yaml
+    │   └── tests                       # Helm tests enable users to verify the correctness and health of a deployed application
+    │       └── test-connection.yaml
+    └── values.yaml                     # The default configuration values for this chart
+```
+
+
