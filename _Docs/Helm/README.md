@@ -116,5 +116,92 @@ helm get values <release>   # Downloads a values file for a given release. use -
     │       └── test-connection.yaml
     └── values.yaml                     # The default configuration values for this chart
 ```
+## Helm Built-in Objects
+In Helm charts, built-in objects offer dynamic values you can access within your templates to customize deployments and make your charts more flexible. These objects provide information about the release, the chart itself, and even the environment during templating.
+#### Release Object:
+Example: Accessing the release name for generating unique resource names:
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-service
+spec:
+  selector:
+    app: {{ .Chart.Name }}
+  ports:
+    - port: 80
+      targetPort: 8080
+```
+#### Values Object:
+Example: Using a custom value from values.yaml to configure a deployment:
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-app-container
+        image: my-app-image:{{ .Values.imageTag }}
+        ports:
+        - containerPort: 8080
+```
+#### File Object
+This object allows accessing the contents of files inside your chart template directory.
+
+Example: Including a configuration file from the chart during deployment:
+
+Let's assume you have two files, app.properties and database.properties, both containing key-value pairs. You want to combine the content of these files into a single ConfigMap.
+
+Directory structure:
+```
+my-chart/
+├── Chart.yaml
+├── values.yaml
+├── templates/
+│   └── configmap.yaml
+└── files/
+    ├── app.properties
+    └── database.properties
+```
+Here's an example of how the configmap.yaml template file might look:
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+data:
+  app.properties: |-
+{{ .Files.Get "app.properties" | indent 4 }}
+  database.properties: |-
+{{ .Files.Get "database.properties" | indent 4 }}
+
+```
+This template creates a ConfigMap named my-configmap with two keys (app.properties and database.properties). It retrieves the content from the respective files in the files directory and indents them by 4 spaces for proper YAML formatting.
+
+The content of app.properties and database.properties should look like key-value pairs:
+
+__app.properties__:
+```
+key1=value1
+key2=value2
+
+```
+__database.properties__:
+```
+db_host=my-db-host
+db_user=my-db-user
+
+```
+When you install or upgrade the Helm chart, Helm will read the content from __app.properties__ and __database.properties__ files and populate the data section of the ConfigMap accordingly.
 
 
