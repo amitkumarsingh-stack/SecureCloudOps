@@ -340,6 +340,7 @@ Explanation:
 * The configData in ```values.yaml``` holds configuration values.
 * In ```configmap.yaml```, ```toJSON .Values.configData``` converts those values into a JSON string.
 * ```nindent 4``` indents the JSON string by 4 spaces for aesthetic formatting.
+
 ## ifElse with EQ
 ifElse with EQ lets you create "rules" within the template:
 * You can check if a value matches a specific condition (like "is the environment 'production'?").
