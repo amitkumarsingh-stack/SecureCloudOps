@@ -204,4 +204,103 @@ db_user=my-db-user
 ```
 When you install or upgrade the Helm chart, Helm will read the content from __app.properties__ and __database.properties__ files and populate the data section of the ConfigMap accordingly.
 
+## Demo - Helm Built-In Object
+1. Lets generate a Chart
+```
+$ helm create helmbasics
+```
+The example helm chart and manifests used in this Helm Chart Tutorial are hosted on the Helm Chart Github repo. You can clone it and use it to follow along with the guide.
+```
+git clone https://github.com/techiescamp/helm-tutorial.git
+```
+If you check the created chart, it will have the following files and directories.
+```
+helmbasics
+│   ├── Chart.yaml
+│   ├── charts
+│   ├── templates
+│   │   ├── NOTES.txt
+│   │   ├── _helpers.tpl
+│   │   ├── deployment.yaml
+│   │   ├── hpa.yaml
+│   │   ├── ingress.yaml
+│   │   ├── service.yaml
+│   │   ├── serviceaccount.yaml
+│   │   └── tests
+│   │       └── test-connection.yaml
+│   └── values.yaml
+```
+```
+cd helmbasics
+```
+#### Chart.yaml
+As mentioned above, we put the details of our chart in Chart.yaml file. Replace the default contents of chart.yaml with the following.
+```
+apiVersion: v2
+name: helmbasics
+description: My First Helm Chart
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+- email: xxx@xxx.com
+  name: devopscube
+```
+1. **apiVersion***: This denotes the chart API version. v2 is for Helm 3 and v1 is for previous versions.
+2. **name**: Denotes the name of the chart.
+3. **description**: Denotes the description of the helm chart.
+4. **Type**: The chart type can be either ‘application’ or ‘library’. Application charts are what you deploy on Kubernetes. Library charts are re-usable charts that can be used with other charts. A similar concept of libraries in programming.
+5. **Version**: This denotes the chart version. 
+6. **appVersion**: This denotes the version number of our application (Nginx). 
+7. **maintainers**: Information about the owner of the chart.
+
+#### Templates
+There are multiple files in templates directory created by Helm. In our case, we will work on simple Kubernetes Nginx deployment.
+
+Let’s remove all default files from the template directory.
+```
+rm -rf templates/*
+```
+We will add our Nginx YAML files and change them to the template for better understanding.
+
+Create a **deployment.yaml** file and copy the following contents.
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: "nginx:1.16.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+```
+If you see the above YAML file, the values are static. The idea of a helm chart is to template the YAML files so that we can reuse them in multiple environments by dynamically assigning values to them.
+
+To template a value, all you need to do is add the **object parameter** inside curly braces as shown below. It is called a template directive and the syntax is specific to the Go templating
+```
+{{ .Object.Parameter }}
+```
+First Let’s understand what is an Object. Following are the three Objects we are going to use in this example.
+1. **Release**: Every helm chart will be deployed with a release name. If you want to use the release name or access release-related dynamic values inside the template, you can use the release object.
+2. **Chart**: If you want to use any values you mentioned in the chart.yaml, you can use the chart object.
+3. **Values**: All parameters inside values.yaml file can be accessed using the Values object.
+The following image shows how the built-in objects are getting substituted inside a template.
+![Alt text](/_Docs/Helm/Images/Image1.png)
+
 
