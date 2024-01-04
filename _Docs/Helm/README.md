@@ -205,7 +205,7 @@ db_user=my-db-user
 When you install or upgrade the Helm chart, Helm will read the content from __app.properties__ and __database.properties__ files and populate the data section of the ConfigMap accordingly.
 
 ## Template Function List
-#### default
+## default
 The ```default``` function in Helm is used to set a default value for a variable or expression within a template. It comes in handy when you want to ensure a value is always present, even if it's not explicitly provided in the values file or context.
 
 Example
@@ -223,7 +223,7 @@ Output:
 If ```values.yaml``` is provided and ```favorite.drink``` is set to "coffee", the output will be "coffee".
 If ```values.yaml``` is not provided or ```favorite.drink``` is not set, the output will be "tea" (the default value).
 
-#### required
+## required
 The required function enforces the presence of a specific value in Helm templates. It ensures that a critical value is always provided by the user, preventing potential errors or misconfigurations.
 Syntax:
 ```
@@ -247,7 +247,7 @@ Behavior:
 * If ```.Values.name``` is set and not empty, the template renders normally, and the deployment's name will be set to the provided value.
 * If ```.Values.name``` is empty or not defined, the template rendering fails with the error message **"A valid name is required!"**, preventing incorrect deployment configuration.
 
-#### toYaml
+## toYaml
 * Converts a value of any supported type (list, slice, array, dictionary, or object) into an indented YAML string.
 * Useful for embedding YAML blocks within templates, especially when those blocks come from variables or other dynamic sources.
 
