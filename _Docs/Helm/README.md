@@ -340,6 +340,95 @@ Explanation:
 * The configData in ```values.yaml``` holds configuration values.
 * In ```configmap.yaml```, ```toJSON .Values.configData``` converts those values into a JSON string.
 * ```nindent 4``` indents the JSON string by 4 spaces for aesthetic formatting.
+## ifElse with EQ
+ifElse with EQ lets you create "rules" within the template:
+* You can check if a value matches a specific condition (like "is the environment 'production'?").
+* Based on the result (true or false), you can fill in different parts of the template accordingly.
+
+Example:
+* If the environment is "production", you might set higher resource limits for your app to handle more traffic.
+* If it's not "production", you might use lower limits to save resources.
+```
+{{- if eq .Values.environment "prod" }}
+replicaCount: 3
+{{- else if eq .Values.environment "qa" }}
+replicaCount: 2
+{{- else }}
+replicaCount: 1
+{{- end }}
+```
+This snippet assumes that you have a value called environment defined in your values.yaml file. Depending on the value of environment, it will set the replicaCount accordingly: 3 for "prod", 2 for "qa", and 1 as a default for any other environment.
+
+## ifElse with Boolean check and AND function
+Let's say you want to set a resource to use a specific image only if both a certain boolean flag (useSpecificImage) is true and the environment is "production".
+```
+{{- if and .Values.useSpecificImage (eq .Values.environment "production") }}
+  image:
+    repository: my-specific-image
+    tag: latest
+{{- else }}
+  image:
+    repository: default-image
+    tag: latest
+{{- end }}
+```
+This example checks two conditions using and:
+
+* ```useSpecificImage`` should be ```true```.
+* The ```environment``` should be ```"production"```.
+If both conditions are **true**, it sets the image repository to **my-specific-image:latest**. Otherwise, it defaults to **default-image:latest**.
+
+## Helm ifElse with OR Function
+Example
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: {{- if or (eq .Values.environment "prod") (eq .Values.environment "qa") .Values.featureXEnabled }}
+    5  # More replicas for production, QA, or if feature X is enabled
+  {{- else }}
+    3  # Default replica count
+  {{- end }}
+```
+Explanation:
+
+1. ```{{- if or (eq .Values.environment "prod") (eq .Values.environment "qa") .Values.featureXEnabled }}```:
+
+* Starts an if block with three conditions using the or function:
+    * ```(eq .Values.environment "prod")```: Checks if the environment is "production".
+    * ```(eq .Values.environment "qa")```: Checks if the environment is "qa".
+    * ```.Values.featureXEnabled```: Checks if the featureXEnabled value is true.
+2. Replica count:
+* If any of the three conditions are true, the replica count is set to 5.
+* Otherwise, it defaults to 3.
+
+## Helm ifElse with NOT Function
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: {{- if not (or (eq .Values.environment "prod") .Values.featureXEnabled) }}
+    5  # More replicas if NOT in production and feature X is NOT enabled
+  {{- else }}
+    3  # Default replica count
+  {{- end }}
+```
+Explanation:
+
+1. ```{{- if not (or (eq .Values.environment "prod") .Values.featureXEnabled) }}```:
+
+* Starts an if block with a negated condition using the not function:
+  * ```(or (eq .Values.environment "prod") .Values.featureXEnabled)```: An inner condition checking if either the environment is "production" or feature X is enabled.
+  * The not function reverses the result, so the if block executes only if both of those conditions are false.
+
+2. Replica count:
+
+* If the environment is not "production" and feature X is also not enabled, the replica count is set to 5.
+* Otherwise, it defaults to 3.
 
 ## Demo - Helm Built-In Object
 1. Lets generate a Chart
