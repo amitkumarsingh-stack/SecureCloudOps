@@ -431,6 +431,38 @@ Explanation:
 * If the environment is not "production" and feature X is also not enabled, the replica count is set to 5.
 * Otherwise, it defaults to 3.
 
+## Access Single object using WITH from a Dictionary
+Suppose you have a dictionary of databases in your values.yaml:
+```
+# values.yaml
+databases:
+  mysql:
+    host: "mysql.example.com"
+    port: 3306
+    username: "mysql_admin"
+    password: "mysql_password"
+  postgres:
+    host: "postgres.example.com"
+    port: 5432
+    username: "postgres_admin"
+    password: "postgres_password"
+```
+And you want to access the postgres database details in your Helm template:
+```
+{{- with .Values.databases.postgres }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+data:
+  host: {{ .host }}
+  port: {{ .port }}
+  username: {{ .username }}
+  password: {{ .password | b64enc }}
+{{- end }}
+```
+Here, .Values.databases.postgres specifies that you're accessing the postgres database object within the databases dictionary. Within the with block, you directly access the properties (host, port, username, password) of the postgres database without explicitly mentioning the path to the entire dictionary.
+
 ## Demo - Helm Built-In Object
 1. Lets generate a Chart
 ```
