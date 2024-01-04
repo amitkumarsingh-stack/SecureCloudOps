@@ -304,4 +304,139 @@ First Let’s understand what is an Object. Following are the three Objects we a
 The following image shows how the built-in objects are getting substituted inside a template.
 ![Alt text](/_Docs/Helm/image/Image1.png)
 
+First, you need to figure out what values could change or what you want to templatize. I am choosing name, replicas, container name, image, and imagePullPolicy which I have highlighted in the YAML file in bold.
+1. **name**: ```name: {{ .Release.Name }}-nginx``` : We need to change the deployment name every time as Helm does not allow us to install releases with the same name. So we will templatize the name of the deployment with the release name and interpolate -nginx along with it. Now if we create a release using the name **frontend**, the deployment name will be frontend-nginx. This way, we will have guaranteed unique names.
+2. **container name**: ```{{ .Chart.Name }}```: For the container name, we will use the Chart object and use the chart name from the chart.yaml as the container name.
+3. **Replicas**: ```{{ .Values.replicaCount }}``` We will access the replica value from the values.yaml file.
+4. **image**: ```"{{ .Values.image.repository }}:{{ .Values.image.tag }}"``` Here we are using multiple template directives in a single line and accessing the repository and tag information under the image key from the Values file.
+
+Similarly, you can templatize the required values in the YAML file.
+
+Here is our final ```deployment.yaml``` file after applying the templates. 
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-nginx
+  labels:
+    app: nginx
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+```
+Create ```service.yaml``` file and copy the following contents.
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-service
+spec:
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  type: {{ .Values.service.type }}
+  ports:
+    - protocol: {{ .Values.service.protocol | default "TCP" }}
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+```
+In the **protocol** template directive, you can see a pipe ( | ) . It is used to define the default value of the protocol as TCP. So that means we won’t define the protocol value in ```values.yaml``` file or if it is empty, it will take TCP as a value for protocol.
+
+Create a **configmap.yaml** and add the following contents to it. Here we are replacing the default Nginx **index.html** page with a custom HTML page. Also, we added a template directive to replace the environment name in HTML.
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-index-html-configmap
+  namespace: default
+data:
+  index.html: |
+    <html>
+    <h1>Welcome</h1>
+    </br>
+    <h1>Hi! I got deployed in {{ .Values.env.name }} Environment using Helm Chart </h1>
+    </html
+```
+#### values.yaml
+The values.yaml file contains all the values that need to be substituted in the template directives we used in the templates.
+
+Now, replace the default **values.yaml** content with the following.
+```
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: "1.16.0"
+  pullPolicy: IfNotPresent
+
+service:
+  name: nginx-service
+  type: ClusterIP
+  port: 80
+  targetPort: 9000
+
+env:
+  name: dev
+```
+Now we have the Nginx helm chart ready and the final helm chart structure looks like the following.
+```
+helmbasics
+├── Chart.yaml
+├── charts
+├── templates
+│   ├── configmap.yaml
+│   ├── deployment.yaml
+│   └── service.yaml
+└── values.yaml
+```
+#### Validate the Helm Chart
+```
+helm lint .
+```
+If there is no error or issue, it will show this result
+```
+==> Linting ./nginx
+[INFO] Chart.yaml: icon is recommended
+
+1 chart(s) linted, 0 chart(s) failed
+```
+To validate if the values are getting substituted in the templates, you can render the templated YAML files with the values using the following command.
+```
+helm template .
+```
+
+We can also use --dry-run command to check. This will pretend to install the chart to the cluster and if there is some issue it will show the error.
+```
+helm install --dry-run my-release nginx-chart
+```
+
+#### Deploy the Helm Chart
+When you deploy the chart, Helm will read the chart and configuration values from the values.yaml file and generate the manifest files. Then it will send these files to the Kubernetes API server, and Kubernetes will create the requested resources in the cluster.
+```
+helm install frontend nginx-chart
+```
+You will see the output as shown below.
+```
+NAME: frontend
+LAST DEPLOYED: Tue Dec 13 10:15:56 2022
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+```
+
 
