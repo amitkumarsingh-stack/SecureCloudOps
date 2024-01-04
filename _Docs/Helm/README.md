@@ -204,6 +204,143 @@ db_user=my-db-user
 ```
 When you install or upgrade the Helm chart, Helm will read the content from __app.properties__ and __database.properties__ files and populate the data section of the ConfigMap accordingly.
 
+## Template Function List
+#### default
+The ```default``` function in Helm is used to set a default value for a variable or expression within a template. It comes in handy when you want to ensure a value is always present, even if it's not explicitly provided in the values file or context.
+
+Example
+```
+# values.yaml (optional)
+favorite:
+  drink: coffee
+```
+```
+# template.yaml
+drink: {{ .Values.favorite.drink | default "tea" }}
+```
+Output:
+
+If ```values.yaml``` is provided and ```favorite.drink``` is set to "coffee", the output will be "coffee".
+If ```values.yaml``` is not provided or ```favorite.drink``` is not set, the output will be "tea" (the default value).
+
+#### required
+The required function enforces the presence of a specific value in Helm templates. It ensures that a critical value is always provided by the user, preventing potential errors or misconfigurations.
+Syntax:
+```
+{{ required ERROR_MESSAGE GIVEN_VALUE }}
+```
+Explanation:
+
+* ```ERROR_MESSAGE```: This is a custom error message that will be displayed if ```GIVEN_VALUE``` is empty or not defined.
+* ```GIVEN_VALUE```: This is the value that will be checked for emptiness.
+Example
+```
+# template.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ required "A valid name is required!" .Values.name }}
+  # ... other fields
+```
+Behavior:
+
+* If ```.Values.name``` is set and not empty, the template renders normally, and the deployment's name will be set to the provided value.
+* If ```.Values.name``` is empty or not defined, the template rendering fails with the error message **"A valid name is required!"**, preventing incorrect deployment configuration.
+
+#### toYaml
+* Converts a value of any supported type (list, slice, array, dictionary, or object) into an indented YAML string.
+* Useful for embedding YAML blocks within templates, especially when those blocks come from variables or other dynamic sources.
+
+Example
+```
+# values.yaml
+annotations:
+  kubernetes.io/ingress.class: nginx
+  traefik.ingress.kubernetes.io/rate-limit: |
+    extractorfunc: client.ip
+    rateset:
+      api-rateset:
+        period: 60s
+        average: 10
+        burst: 20
+```
+```
+# ingress.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress
+  annotations:
+    # Embed annotations from values.yaml as YAML
+    {{- toYaml .Values.annotations | nindent 4 }}
+```
+
+
+Here's a definition and example of the toYaml function in Helm:
+
+Definition:
+
+Converts a value of any supported type (list, slice, array, dictionary, or object) into an indented YAML string.
+Useful for embedding YAML blocks within templates, especially when those blocks come from variables or other dynamic sources.
+It's equivalent to Go's yaml.Marshal function.
+Example:
+
+YAML
+# values.yaml
+annotations:
+  kubernetes.io/ingress.class: nginx
+  traefik.ingress.kubernetes.io/rate-limit: |
+    extractorfunc: client.ip
+    rateset:
+      api-rateset:
+        period: 60s
+        average: 10
+        burst: 20
+Use code with caution. Learn more
+YAML
+# ingress.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress
+  annotations:
+    # Embed annotations from values.yaml as YAML
+    {{- toYaml .Values.annotations | nindent 4 }}
+
+Explanation:
+
+* The annotations key in ```values.yaml`` holds a YAML block.
+* In ```ingress.yaml```, ```toYaml .Values.annotations``` converts that block into a YAML string.
+* ```nindent 4``` indents the YAML string by 4 spaces, ensuring correct formatting within the annotations section.
+
+#### toJSON
+* Converts a value of any supported type (list, slice, array, dictionary, or object) into a JSON string.
+* Employed when you need to create JSON-formatted data within your Helm templates.
+```
+# values.yaml
+configData:
+  server: nginx
+  version: 1.21.6
+  ports:
+    - 80
+    - 443
+```
+```
+# configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+data:
+  appsettings.json: |
+    {{- toJSON .Values.configData | nindent 4 }}
+```
+Explanation:
+
+* The configData in ```values.yaml``` holds configuration values.
+* In ```configmap.yaml```, ```toJSON .Values.configData``` converts those values into a JSON string.
+* ```nindent 4``` indents the JSON string by 4 spaces for aesthetic formatting.
+
 ## Demo - Helm Built-In Object
 1. Lets generate a Chart
 ```
