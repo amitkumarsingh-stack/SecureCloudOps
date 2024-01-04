@@ -463,6 +463,95 @@ data:
 ```
 Here, .Values.databases.postgres specifies that you're accessing the postgres database object within the databases dictionary. Within the with block, you directly access the properties (host, port, username, password) of the postgres database without explicitly mentioning the path to the entire dictionary.
 
+## Helm Range with List
+Let's assume you have a list of namespaces defined in your ```values.yaml``` file:
+```
+# values.yaml
+namespaces:
+  - namespace1
+  - namespace2
+  - namespace3
+```
+Now, you can use the range function in your Helm templates to create resources for each namespace:
+```
+{{- range .Values.namespaces }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ . }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service-{{ . }}
+  namespace: {{ . }}
+spec:
+  selector:
+    app: my-app
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+# Any other resources you want to create for each namespace can go here
+{{- end }}
+```
+In this example:
+* ```range .Values.namespaces``` iterates through each item in the namespaces list.
+* ```{{ . }}``` represents the current namespace in the iteration.
+* ```---:```: The triple dashes ```(---)``` between each iteration create separate YAML documents, ensuring each namespace is defined as an independent object.
+* For each namespace, it creates a Kubernetes Namespace resource with the name taken from the list.
+* Additionally, it creates a Service resource named ```my-service-{{ . }}``` within each namespace, with a selector targeting an app named ```my-app``` on port **8080**.
+
+## Helm Range with Dictionary
+if you have a dictionary structure in your ```values.yaml``` file and want to create ConfigMaps in Kubernetes based on that dictionary using Helm's ```range``` function, you can do something like this:
+1. Let's assume you have the following structure in your ```values.yaml```:
+```
+configMapData:
+  key1: value1
+  key2: value2
+  key3: value3
+```
+2. Create the template:
+* In your template file ```(e.g., templates/configmap.yaml)```, use the ```range``` function to iterate over the dictionary:
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+data:
+  {{- range $key, $value := .Values.configMapData }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+```
+Explanation:
+
+* ```range $key, $value := .Values.configMapData``` iterates over each key-value pair in the dictionary.
+* ```$key``` holds the current key in each iteration.
+* ```$value``` holds the current value.
+* ```{{ $value | quote }}``` quotes the value to ensure proper YAML formatting.
+3. Render the template:
+* Use the ```helm template``` command to render the template with ```values.yaml```:
+```
+helm template my-chart ./values.yaml
+```
+4. Inspect the Output
+* The output will contain a ConfigMap with the specified keys and values from values.yaml:
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+data:
+  key1: value1
+  key2: value2
+  key3: value3
+```
+Key points:
+* The ```range``` function can iterate over dictionaries as well as lists.
+* It creates a temporary context for each key-value pair, allowing access to both the key and value.
+* This approach dynamically populates a ConfigMap with values from a dictionary.
+
 ## Demo - Helm Built-In Object
 1. Lets generate a Chart
 ```
