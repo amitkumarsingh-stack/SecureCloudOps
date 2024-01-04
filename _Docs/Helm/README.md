@@ -300,7 +300,8 @@ First Let’s understand what is an Object. Following are the three Objects we a
 1. **Release**: Every helm chart will be deployed with a release name. If you want to use the release name or access release-related dynamic values inside the template, you can use the release object.
 2. **Chart**: If you want to use any values you mentioned in the chart.yaml, you can use the chart object.
 3. **Values**: All parameters inside values.yaml file can be accessed using the Values object.
+   
 The following image shows how the built-in objects are getting substituted inside a template.
-![Alt text](/_Docs/Helm/Images/Image1.png)
+![Alt text](/_Docs/Helm/Image/Image1.png)
 
 
