@@ -576,4 +576,6 @@ REVISION: 1
 TEST SUITE: None
 ```
 
+## Reference "Helm Master Class"
+[Helm Master Class](https://github.com/stacksimplify/helm-masterclass)
 
