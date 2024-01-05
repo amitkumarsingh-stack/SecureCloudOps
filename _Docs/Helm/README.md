@@ -106,7 +106,7 @@ helm get values <release>   # Downloads a values file for a given release. use -
     ├── charts                          # A directory containing any charts upon which this chart depends.
     ├── templates                       # A directory of templates that, when combined with values, will generate valid Kubernetes manifest files.
     │   ├── NOTES.txt
-    │   ├── _helpers.tpl                
+    │   ├── _helpers.tpl                # _helpers.tpl contains the re-usable named templates required for Helm Charts
     │   ├── deployment.yaml
     │   ├── hpa.yaml
     │   ├── ingress.yaml
