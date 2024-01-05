@@ -551,7 +551,98 @@ Key points:
 * The ```range``` function can iterate over dictionaries as well as lists.
 * It creates a temporary context for each key-value pair, allowing access to both the key and value.
 * This approach dynamically populates a ConfigMap with values from a dictionary.
+## Named Templates in Helm:
+**Purpose**: Reusable snippets of template code within Helm charts, promoting consistency, maintainability, and reducing duplication.
 
+**Example Scenario**:
+
+Imagine a chart with multiple Kubernetes Deployments sharing common labels:
+1. Define a Named Template for Labels:
+```
+# _helpers.tpl
+{{- define "mychart.labels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+```
+
+2. Use the Template in Deployments:
+```
+# deployment-a.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment-a
+  labels:
+    {{- template "mychart.labels" . }}  # Apply the template
+```
+**Key Points**:
+
+* **Scope**: Pass the current scope ```(.)``` to the template when calling it, ensuring access to variables and objects within the caller's context.
+* **Naming Conventions**: Prefix template names with the chart name to prevent conflicts ```(e.g., mychart.labels)```.
+* **Recursive Templates**: Possible for complex logic and dynamic content generation.
+* You cannot use ```|``` with templates, for example, ```{{- template "mychart.labels" . | upper }}```. To use Pipe ```|``` use ```include function.
+
+## Helm include function
+**Purpose**:
+
+* Incorporates the output of one named template into another template.
+* Facilitates modularity and reusability within charts.
+
+1. Define a Named Template for Labels:
+```
+# _helpers.tpl
+{{- define "mychart.labels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+```
+
+2. Use the Template in Deployments:
+```
+# deployment-a.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment-a
+  labels:
+    {{ include "mychart.labels" . | indent 4 }}  # Include and indent for proper YAML formatting
+```
+**Key Points**:
+
+* **Scope**: Pass the current scope ```(.)``` to the included template if needed.
+* **Pipeline**: Use ```|``` to chain template functions for further processing.
+* **Indentation**: Adjust indentation for correct YAML output ```(e.g., indent 4)```.
+
+**Additional Use Cases**:
+
+* **Common Data**: Include templates for values like image tags, URLs, or environment variables.
+* **Conditional Logic**: Use ```include``` within conditional blocks for dynamic content.
+
+## Helm Printf Function
+**Purpose**: Returns a string based on a formatting string and the arguments to pass to it in order.
+```
+# helpers.tpl
+{{/* Common Labels */}}
+{{- define "helmbasics.labels"}}
+    app: nginx
+    chartname: {{ .Chart.Name }}
+{{- end }}
+
+{{/* k8s Resource Name: String Concat with Hyphen */}}
+{{- define "helmbasics.resourceName" }}
+{{- printf "%s-%s" .Release.Name .Chart.Name }}
+{{- end }}
+```
+```
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helmbasics.resourceName" . }}-deployment
+  labels:
+  {{- include "helmbasics.labels" . | upper }}
+```
 ## Demo - Helm Built-In Object
 1. Lets generate a Chart
 ```
@@ -786,6 +877,7 @@ STATUS: deployed
 REVISION: 1
 TEST SUITE: None
 ```
+
 
 ## Reference "Helm Master Class"
 [Helm Master Class](https://github.com/stacksimplify/helm-masterclass)
