@@ -877,7 +877,70 @@ STATUS: deployed
 REVISION: 1
 TEST SUITE: None
 ```
-
+## Sample template with the use of functions
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "myfirstchart.fullname" . }}  # Sets the deployment name using a Helm include function to concatenate values.
+  labels:
+    {{- include "myfirstchart.labels" . | nindent 4 }}  # Sets labels for the deployment using an include function and indents the output.
+spec:
+  {{- if not .Values.autoscaling.enabled }}  # Conditional check for autoscaling enabled in values. If not enabled, sets replicas count.
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "myfirstchart.selectorLabels" . | nindent 6 }}  # Sets matchLabels using an include function and indents the output.
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}  # Checks if podAnnotations exist in values and adds annotations to the metadata.
+      annotations:
+        {{- toYaml . | nindent 8 }}  # Converts podAnnotations to YAML format and indents the output.
+      {{- end }}
+      labels:
+        {{- include "myfirstchart.selectorLabels" . | nindent 8 }}  # Sets labels for the template using an include function and indents the output.
+    spec:
+      {{- with .Values.imagePullSecrets }}  # Checks if imagePullSecrets exist in values and adds them to the template.
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}  # Converts imagePullSecrets to YAML format and indents the output.
+      {{- end }}
+      serviceAccountName: {{ include "myfirstchart.serviceAccountName" . }}  # Sets the serviceAccountName using a Helm include function.
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}  # Converts podSecurityContext to YAML format and indents the output for security context.
+      containers:
+        - name: {{ .Chart.Name }}  # Sets the container name to the Helm chart name.
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}  # Converts securityContext to YAML format and indents the output for container security context.
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"  # Sets the container image using values and default AppVersion.
+          imagePullPolicy: {{ .Values.image.pullPolicy }}  # Sets the image pull policy.
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}  # Sets the container port from values.
+              protocol: TCP  # Specifies the protocol for the container port.
+          livenessProbe:  # Sets the liveness probe configuration for the container.
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:  # Sets the readiness probe configuration for the container.
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}  # Converts resources to YAML format and indents the output for container resources.
+      {{- with .Values.nodeSelector }}  # Adds nodeSelector if it exists in values.
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}  # Converts nodeSelector to YAML format and indents the output.
+      {{- end }}
+      {{- with .Values.affinity }}  # Adds affinity if it exists in values.
+      affinity:
+        {{- toYaml . | nindent 8 }}  # Converts affinity to YAML format and indents the output.
+      {{- end }}
+      {{- with .Values.tolerations }}  # Adds tolerations if it exists in values.
+      tolerations:
+        {{- toYaml . | nindent 8 }}  # Converts tolerations to YAML format and indents the output.
+      {{- end }}
+```
 
 ## Reference "Helm Master Class"
 [Helm Master Class](https://github.com/stacksimplify/helm-masterclass)
