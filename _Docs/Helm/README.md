@@ -1060,7 +1060,7 @@ After you install or upgrade your chart (```helm install``` or ```helm upgrade``
 
 Here's an another example of a pre-delete hook that runs a Kubernetes Job before deleting resources during a Helm release deletion:
 
-Create a hook template file ```(pre-delete-job.yaml)`` in the ```templates/hooks/``` directory of your Helm chart:
+Create a hook template file ```(pre-delete-job.yaml)``` in the ```templates/hooks/``` directory of your Helm chart:
 ```
 # templates/hooks/pre-delete-job.yaml
 
