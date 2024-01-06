@@ -941,6 +941,154 @@ spec:
         {{- toYaml . | nindent 8 }}  # Converts tolerations to YAML format and indents the output.
       {{- end }}
 ```
+## Helm Dependencies
+You can define dependencies for your charts using the dependencies section in the Chart.yaml file. This allows you to specify other charts that your chart depends on, ensuring that they are installed before your chart is deployed.
+
+Here's an example of how you can define dependencies in a ```Chart.yaml``` file:
+```
+# Chart.yaml
+
+name: mychart
+version: 1.0.0
+description: My Helm Chart
+
+# Dependencies section
+dependencies:
+  - name: postgresql
+    version: 8.6.3
+    repository: https://example.com/charts
+  - name: redis
+    version: 10.0.1
+    repository: https://anotherrepo.com/charts
+```
+In this example:
+
+* **name**: Specifies the name of the dependent chart.
+* **version**: Specifies the version constraint for the dependent chart.
+* **repository**: Specifies the repository where the dependent chart can be found.
+To use these dependencies in your chart, you can refer to them in your templates or values files. For instance, you might include the dependent services in your ```values.yaml``` file:
+```
+# values.yaml
+
+postgresql:
+  enabled: true
+  postgresUsername: myuser
+  postgresPassword: mypassword
+
+redis:
+  enabled: true
+  redisPassword: myredispassword
+```
+Then, in your templates, you can conditionally include resources based on the values:
+```
+# deployment.yaml
+
+{{- if .Values.postgresql.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  # ...
+{{- end }}
+
+{{- if .Values.redis.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+spec:
+  # ...
+{{- end }}
+```
+To install or upgrade your chart along with its dependencies, you would use the following command:
+```
+helm upgrade --install myrelease ./mychart
+```
+## Helm Hooks
+Helm hooks allow you to execute predefined Kubernetes manifest files at certain points during the Helm lifecycle. They are essential for performing actions before or after certain Helm operations, like installation, upgrade, or deletion.
+
+Here's a breakdown of Helm hooks and an example:
+
+Helm Hook Types:
+1. **Pre-install and Post-install Hooks**:
+
+* Pre-install hooks run before any resources are created for a release.
+* Post-install hooks run after all resources have been created for a release.
+2. **Pre-delete and Post-delete Hooks**:
+
+* Pre-delete hooks run before any resources are deleted for a release.
+* Post-delete hooks run after all resources have been deleted for a release.
+3. **Pre-upgrade and Post-upgrade Hooks**:
+
+* Pre-upgrade hooks run before any resources are updated for a release.
+* Post-upgrade hooks run after all resources have been updated for a release.
+
+**Example:**
+
+Suppose you want to run a Job after deploying your Helm chart. You can define a post-install hook as a Kubernetes Job in a hook template file.
+
+Here's an example of a post-install hook ```(my-hook.yaml)`` that creates a Job:
+```
+# templates/hooks/my-hook.yaml
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-my-job"
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "5"
+spec:
+  template:
+    metadata:
+      labels:
+        app: my-job
+    spec:
+      containers:
+        - name: my-job-container
+          image: busybox
+          command: ["echo", "My Hook Job"]
+      restartPolicy: Never
+```
+In this example:
+
+* **helm.sh/hook**: Specifies that it's a Helm hook and defines the hook type ```(post-install)```.
+* **helm.sh/hook-weight**: Defines the order in which hooks are executed if multiple hooks are present.
+
+After you install or upgrade your chart (```helm install``` or ```helm upgrade```), this Job will be created as part of the Helm lifecycle, executing the defined command in the Kubernetes Pod. Adjust the Job's specifications based on your specific requirements or actions needed during the Helm lifecycle.
+
+Here's an another example of a pre-delete hook that runs a Kubernetes Job before deleting resources during a Helm release deletion:
+
+Create a hook template file ```(pre-delete-job.yaml)`` in the ```templates/hooks/``` directory of your Helm chart:
+```
+# templates/hooks/pre-delete-job.yaml
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-pre-delete-job"
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "5"
+spec:
+  template:
+    metadata:
+      labels:
+        app: pre-delete-job
+    spec:
+      containers:
+        - name: pre-delete-job-container
+          image: busybox
+          command: ["echo", "Pre-Delete Hook Job"]
+      restartPolicy: Never
+```
+**Explanation**:
+
+* **helm.sh/hook**: Indicates that it's a Helm hook and specifies the hook type as pre-delete.
+* **helm.sh/hook-weight**: Defines the order in which hooks are executed if multiple hooks are present.
+
+After defining this pre-delete hook, when you delete a release ```(helm delete RELEASE_NAME)```, this Job will be executed before the release's resources are deleted, performing the defined command in the Kubernetes Pod.
 
 ## Reference "Helm Master Class"
 [Helm Master Class](https://github.com/stacksimplify/helm-masterclass)
