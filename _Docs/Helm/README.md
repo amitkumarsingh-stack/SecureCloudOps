@@ -1090,6 +1090,38 @@ spec:
 
 After defining this pre-delete hook, when you delete a release ```(helm delete RELEASE_NAME)```, this Job will be executed before the release's resources are deleted, performing the defined command in the Kubernetes Pod.
 
+## Helm Test
+Helm provides a way to define test files that help validate whether a release has been successfully deployed and is functioning as expected. These tests are defined in the templates/tests/ directory of your Helm chart.
+
+Let's create a simple Helm test to verify the NGINX deployment. We'll create a test that checks if the NGINX service responds to HTTP requests.
+
+Here's a basic test manifest ```(nginx-test.yaml)``` placed in the ```templates/tests/``` directory of your Helm chart:
+```
+# templates/tests/nginx-test.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ .Release.Name }}-nginx-test-pod"
+  labels:
+    app: my-nginx-chart
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: test-nginx
+      image: curlimages/curl:latest
+      command: ["curl", "{{ .Release.Name }}-my-nginx-chart:80"]
+      ports:
+        - containerPort: 80
+```
+This test uses a Pod with a curl image to make an HTTP request to the NGINX service deployed by the Helm chart.
+
+After deploying your NGINX Helm chart ```(using helm install)```, you can run the test with the following command:
+```
+helm test RELEASE_NAME
+```
+
 ## Reference "Helm Master Class"
 [Helm Master Class](https://github.com/stacksimplify/helm-masterclass)
 
