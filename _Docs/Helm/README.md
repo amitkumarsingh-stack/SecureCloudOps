@@ -1121,6 +1121,54 @@ After deploying your NGINX Helm chart ```(using helm install)```, you can run th
 ```
 helm test RELEASE_NAME
 ```
+## Helm Resource Policy
+**Definition**:
+
+Helm resource policies are annotations that control how Helm manages the lifecycle of Kubernetes resources created by a chart.
+They influence whether resources are deleted or kept when a chart is uninstalled, upgraded, or rolled back.
+Key Resource Policies:
+
+**Keep Policy**:
+
+* **Annotation**: ```helm.sh/resource-policy: keep```
+* Instructs Helm to not delete the resource during uninstall, upgrade, or rollback.
+* Useful for resources that should persist even after the chart is removed, such as persistent volumes or external data stores.
+
+**Delete Policy**:
+
+* **Annotation**: ```helm.sh/hook-delete-policy: before-hook-creation```,hook-succeeded
+* Specifies when a hook resource (job, pod, etc.) should be deleted.
+
+**Options**:
+* **before-hook-creation**: Delete before creating the hook.
+* **hook-succeeded**: Delete after the hook succeeds.
+* **hook-failed**: Delete after the hook fails.
+
+**Example (Keep Policy):**
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    helm.sh/resource-policy: keep  # Annotation to keep the PVC
+  name: my-data-pvc
+  namespace: my-release
+```
+**Example (Delete Policy):**
+```
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    helm.sh/hook-delete-policy: hook-succeeded  # Delete after success
+  name: my-migration-job
+  namespace: my-release
+```
+**Additional Notes:**
+
+* Use resource policies with caution, as keeping orphaned resources can lead to unexpected behavior.
+* Consider using hooks for cleanup tasks instead of relying solely on resource policies.
+* Always test your charts thoroughly to ensure resource management works as intended.
 
 ## Reference "Helm Master Class"
 [Helm Master Class](https://github.com/stacksimplify/helm-masterclass)
