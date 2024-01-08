@@ -20,11 +20,33 @@ Overall, GitOps using ArgoCD streamlines and automates the deployment and manage
 ## Architecture Overview
 ![Alt text](/_Docs/ArgoCD/images/ArgoCD_Architecture.png)
 
+## Components
+### API server
+The API server is a gRPC/REST server which exposes the API consumed by the Web UI, CLI, and CI/CD systems. It has the following responsibilities:
+
+* application management and status reporting
+* invoking of application operations (e.g. sync, rollback, user-defined actions)
+* repository and cluster credential management (stored as K8s secrets)
+* authentication and auth delegation to external identity providers
+* RBAC enforcement
+* listener/forwarder for Git webhook events
+
+### Repository Server
+The repository server is an internal service which maintains a local cache of the Git repository holding the application manifests. It is responsible for generating and returning the Kubernetes manifests when provided the following inputs:
+
+* repository URL
+* revision (commit, tag, branch)
+* application path
+* template specific settings: parameters, helm values.yaml
+
+### Application Controller
+The application controller is a Kubernetes controller which continuously monitors running applications and compares the current, live state against the desired target state (as specified in the repo). It detects OutOfSync application state and optionally takes corrective action. It is responsible for invoking any user-defined hooks for lifecycle events (PreSync, Sync, PostSync)
+
 ## Installation
 
 ### Prerequisites
 
-- Kubernetes cluster (minikube, AKS, EKS, GKE, etc.)
+- Azure Kubernetes cluster (minikube, AKS, EKS, GKE, etc.)
 - `kubectl` CLI installed and configured to connect to your Kubernetes cluster.
 
 ### Install ArgoCD using kubectl
@@ -32,6 +54,7 @@ Overall, GitOps using ArgoCD streamlines and automates the deployment and manage
 1. Apply ArgoCD manifests to your cluster:
 
     ```bash
+    kubectl create namespace argocd
     kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/<VERSION>/manifests/install.yaml
     ```
 
@@ -39,11 +62,25 @@ Overall, GitOps using ArgoCD streamlines and automates the deployment and manage
 
 2. Access the ArgoCD web UI using port forwarding:
 
-    ```bash
-    kubectl port-forward svc/argocd-server -n argocd 8080:443
-    ```
+By default, the Argo CD API server is not exposed with an external IP. To access the API server, choose one of the following techniques to expose the Argo CD API server:
 
-    Open your browser and navigate to `https://localhost:8080`. Login with the default credentials (`admin`/`password`).
+Change the argocd-server service type to ```LoadBalancer```:
+```
+# kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+```
+Now you will be able to see that the argocd-server service type has been changed to a LoadBalancer type. This means that it now has a public Azure load balancer attached to it with an external IP.
+
+```
+# kubectl get svc -n argocd
+```
+3. Login Using The CLI
+The initial password for the admin account is auto-generated and stored as clear text in the field ```password``` in a secret named ```argocd-initial-admin-secret``` in your Argo CD installation namespace. You can simply retrieve this password using ```kubectl```:
+```
+# kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+```
+Using the username admin and the password from above, login to Argo CD’s IP or hostname:
+
+That’s it for now! we have Argo CD deployed on your AKS cluster. In coming posts will see how to deploy a app using argoCD and also how to integrate with GIT repository.
 
 ## Usage
 
