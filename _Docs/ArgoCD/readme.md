@@ -1,14 +1,24 @@
-# ArgoCD
+## ArgoCD
+### What is GitOps?
+GitOps is a methodology for managing and deploying applications in Kubernetes using Git as the single source of truth for the desired state of the system. ArgoCD is one of the popular tools that implements the GitOps workflow in Kubernetes.
 
-ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes applications. It helps in managing and automating the deployment of applications within Kubernetes clusters.
+### Features
+Here's how GitOps works with ArgoCD:
 
-## Features
+1. **Declarative Configuration**: With GitOps, the desired state of the applications, including configurations, manifests, and other resources, is stored in a Git repository. This repository serves as the source of truth.
 
-- **Declarative Configuration**: Define the desired application state declaratively in Git.
-- **Automated Sync**: Automatically monitors and syncs application state with the defined configuration in Git repositories.
-- **Multi-Environment Support**: Manages multiple environments (dev, staging, production) using the same workflow.
-- **Rollback Capability**: Provides the ability to rollback to a previous version or state of an application.
-- **RBAC Integration**: Integrates with Kubernetes RBAC for access control and security.
+2. **Continuous Synchronization**: ArgoCD continuously monitors the Git repository for changes. When changes are detected (such as updates to configuration files or manifests), ArgoCD automatically reconciles the actual cluster state with the desired state defined in the repository.
+
+3. **Automated Deployment**: Any changes made to the Git repository trigger an automated deployment process by ArgoCD. It ensures that the applications running in the Kubernetes cluster match the desired state described in the Git repository.
+
+4. **Observability and Rollbacks**: ArgoCD provides visibility into the state of applications deployed in the cluster through its user interface. Additionally, it supports rollback capabilities, allowing users to revert to a previously known good state in case of issues or errors.
+
+5. **Multi-Environment Support**: GitOps with ArgoCD enables managing multiple environments (e.g., development, staging, production) using Git branches or directories within the repository, allowing for consistent deployments across different environments.
+
+Overall, GitOps using ArgoCD streamlines and automates the deployment and management of Kubernetes applications by leveraging Git as the central control plane, enabling teams to maintain a consistent and auditable deployment process while promoting collaboration through version control.
+
+## Architecture Overview
+![Alt text](/_Docs/ArgoCD/images/ArgoCD_Architecture.png)
 
 ## Installation
 
