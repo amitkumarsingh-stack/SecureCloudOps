@@ -101,6 +101,61 @@ That’s it for now! we have Argo CD deployed on your AKS cluster. In coming pos
 - Make changes to the application manifests in the Git repository.
 - ArgoCD will automatically detect changes and trigger the sync process to apply the updates to the Kubernetes cluster.
 
+## Demo
+In order for us to create an application to demonstrate how Argo CD works, we are going to use an example repository containing a guestbook application. If you would like to check it out or follow along, it is available at https://github.com/argoproj/argocd-example-apps.git.
+
+#### Creating Apps Via UI
+
+* Open a browser and login using the admin credentials we set up earlier. 
+* After logging in, click the “+ New App” button as shown below:
+![Alt text](/_Docs/ArgoCD/images/ArgoCD1.png)
+* Give your app the name ```guestbook```, use the project ```default```, and leave the sync policy as ```Manual```
+* Connect the https://github.com/argoproj/argocd-example-apps.git repo to Argo CD by setting repository URL to the GitHub repo URL, leave revision as ```HEAD```, and set the path to ```guestbook```:
+![Alt text](/_Docs/ArgoCD/images/ArgoCD2.png)
+* For Destination, set cluster to ```in-cluster``` and namespace to ```default```:
+![Alt text](/_Docs/ArgoCD/images/ArgoCD3.png)
+
+#### Sync (Deploy) The Application
+
+Once the guestbook application is created, you can now view its status:
+![Alt text](/_Docs/ArgoCD/images/ArgoCD4.png)
+As you can see, the application status is ```OutOfSync! OutOfSync``` means the git state is different from the cluster state. You can see this information in multiple ways while in the UI. When the state is not in sync, you can usually tell as it is in a helpful yellow color. You can also filter by status on the left side of the dashboard. I highly recommend poking around the dashboard to see which configuration works for you!
+
+That said, the application status is initially in ```OutOfSync``` state since the application has yet to be deployed. Also, no Kubernetes resources have been created. To sync (deploy) the application, we’ll use the “Sync” button.
+
+This will bring up a second set of options. Select “Synchronize”.
+![Alt text](/_Docs/ArgoCD/images/ArgoCD5.png)
+
+Synchronizing is how we deploy the application. When we “Sync” or “Synchronize”, it means we are updating the cluster state to match the Git state. This is one of the most important tenets of GitOps.
+
+Once things are complete and you return to the dashboard, you will see the guestbook app is now running. Select the app and see what information you can find!
+![Alt text](/_Docs/ArgoCD/images/ArgoCD6.png)
+![Alt text](/_Docs/ArgoCD/images/ArgoCD7.png)
+If you click on the application name, you will see a hierarchical view of all the Kubernetes resources that take part in the application. You will also see additional details related to the health and synchronization status.
+
+## Modifying and redeploying the Application
+Here is where I feel Argo CD really shines. Now that we have a healthy system, let’s initiate a change. Let’s scale the deployment by modifying the replicas in the ```deployment.yaml``` file.
+
+In the ```deployment.yaml``` file, increase the number of replicas from 1 to 2. Since we are following GitOps, we want our modification to be declarative. So, we are going to commit and submit this change via Git. This will show things OutOfSync as well as identify configuration drift.
+If you go back to the UI, you should now see that we are now once again OutOfSync!
+![Alt text](/_Docs/ArgoCD/images/ArgoCD8.png)
+
+I sincerely love this feature, because not only does Argo CD let us know the application is no longer in sync, it also gives you a nice “App Diff” view to give more detail about what was changed! Click on the application name again, and you will see this option at the top of the page.
+
+![Alt text](/_Docs/ArgoCD/images/ArgoCD9.png)
+Now, the default “Diff” view can potentially contain an enormous amount of information, so I like to select the “Compact Diff” option in order to immediately see any changes. As you can see, we increased our replicas from 1 > 2.
+
+![Alt text](/_Docs/ArgoCD/images/ArgoCD10.png)
+
+Follow the same steps to deploy an application by using the “Sync” button, and we should be back to a healthy app.
+
+![Alt text](/_Docs/ArgoCD/images/ArgoCD11.png)
+
+### Conclusion
+As you can see, adopting GitOps is beneficial in many ways! Among other things, you gain faster and more frequent deployments, the ability to avoid configuration drift, and easier error handling. This is shown especially when coupled with Argo CD as it can help leverage your deployment process by performing commits automatically and can also execute rollbacks if there are any issues.
+
+Argo CD is great by itself, but it is even better when connected to other Argo projects such as Argo Workflows, Rollouts, or Events. Combined with any of these, you can elevate your continuous deployment process.
+
 ## Contributing
 
 We welcome contributions! Please feel free to raise issues or submit pull requests for any enhancements or bug fixes.
