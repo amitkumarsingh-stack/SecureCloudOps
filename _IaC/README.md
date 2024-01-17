@@ -1,5 +1,5 @@
 # Terraform Azure Repository
-Welcome to our Terraform Repository!
+Welcome to my Terraform Repository!
 
 About
 This repository hosts Terraform code for provisioning and managing resources in Microsoft Azure/AWS. My focus is on using Infrastructure as Code (IaC) principles to automate infrastructure setup, configuration, and management in Azure.
