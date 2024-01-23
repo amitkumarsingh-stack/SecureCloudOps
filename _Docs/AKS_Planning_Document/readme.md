@@ -24,8 +24,16 @@ A. **Kubenet Networking**
 * Network address translation (NAT) is then configured so that the pods can reach resources on the Azure virtual network.
 * The source IP address of the traffic is translated to the node’s primary IP address.
 
-This approach reduces the number of IP addresses you need to reserve in your network space for pods to use.
-![image](https://github.com/amitkumarsingh-stack/SecureCloudOps/assets/152581728/71f0da4a-9bb4-47e0-b3bb-d178a3dd5e78)
+**Use Kubenet when:
+* You have limited IP address space.
+* Most of the pod communication is within the cluster.
+* You don’t need advanced AKS features such as virtual nodes or Azure Network Policy.
+
+**Limitations & Considerations for Kubenet**
+* An additional hop is required in the design of kubenet, which adds minor latency to pod communication.
+* Route tables and user-defined routes are required for using kubenet, which adds complexity to operations.
+* Direct pod addressing isn't supported for kubenet due to kubenet design.
+* Unlike Azure CNI clusters, multiple kubenet clusters can't share a subnet.
 
 
 ```
