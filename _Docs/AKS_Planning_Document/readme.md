@@ -22,7 +22,7 @@ By default, AKS clusters use kubenet, and an Azure virtual network and subnet ar
 * Azure automatically provisions and configures virtual network resources for AKS clusters. The VNet and subnet are created in a dedicated resource group, automatically generated in your subscription by the Azure resource provider. By default, the AKS node resource group is named ```MC_resourcegroupname_clustername_location```.
 * We can manually create and configure the virtual network resources and attach to those resources when we create our AKS cluster. We can configure our Vnet and subnet at the time of the AKS creation.
 
-### Resource Management
+### 2. Resource Management
 #### Sizing of Nodes: 
 what type of worker nodes should I use, and how many of them is a critical question which requires the analysis of the workloads deployed on your cluster to get the best values of it
 
@@ -76,3 +76,56 @@ Choosing the right worker node size for your Kubernetes cluster is a crucial dec
 12. **Storage Requirements**:
 
 * If your application requires significant storage, choose nodes with appropriate storage capacity and performance characteristics.
+
+Let's summarize the pros and cons of the two options for sizing Kubernetes worker nodes and provide some guidance:
+
+**Option 1**: Fewer, Larger Nodes
+
+**Pros**:
+
+- Suitable for CPU or RAM-intensive applications, ensuring each application has sufficient resources.
+- Simplifies resource management and maintenance with fewer nodes.
+**Cons**:
+
+- High availability is challenging to achieve with a minimal set of nodes.
+- If a node goes down, a significant portion of the service capacity is lost.
+Larger increment size when autoscaling, potentially leading to over-provisioning.
+
+**Guidance**:
+
+- Ideal for applications with high resource demands.
+- Consider the trade-off between high resource availability and potential service impact during node failures.
+
+**Option 2**: More, Smaller Nodes
+
+**Pros**:
+
+- Easier to maintain high availability as there are more nodes.
+- Service capacity impact is lower if a node goes down.
+- Allows for finer-grained scaling, reducing the risk of over-provisioning.
+
+**Cons**:
+
+- More system overhead to manage and maintain multiple nodes.
+- Possibility of under-utilization if nodes are too small for certain services.
+
+**Guidance**:
+
+- Preferable for production deployments where high availability is crucial.
+- Consider the trade-off between system overhead and better resource utilization.
+
+**Example Service using 3 Pods per Node**
+* Each pod requires 2 CPU and 4GB RAM.
+* Minimum node requirement: 6 CPU, 12 GB RAM (for 3 pods).
+* Add 10% for system overhead.
+* Select Azure VM SKU which provides 8 CPU / 16 GB RAM that might be suitable.
+
+**To Determine Base Number of Nodes**:
+
+* Divide the total number of pods by 3 (number of pods per node) to determine the minimum cluster size.
+* Implement horizontal auto-scaling to dynamically adjust the cluster size based on demand.
+Guidance:
+
+* Tailor your node sizing to the specific resource requirements of your pods.
+* Follow cloud provider guidelines and best practices for optimal performance.
+
