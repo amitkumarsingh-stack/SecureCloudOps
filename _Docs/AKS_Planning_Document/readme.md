@@ -43,7 +43,7 @@ By default, AKS clusters use kubenet, and an Azure virtual network and subnet ar
 * Azure automatically provisions and configures virtual network resources for AKS clusters. The VNet and subnet are created in a dedicated resource group, automatically generated in your subscription by the Azure resource provider. By default, the AKS node resource group is named ```MC_resourcegroupname_clustername_location```.
 * We can manually create and configure the virtual network resources and attach to those resources when we create our AKS cluster. We can configure our Vnet and subnet at the time of the AKS creation.
 
-B. Azure CNI Networking
+B. **Azure CNI Networking**
 
 ![Alt text](/_Docs/AKS_Planning_Document/images/Azure_CNI.png)
 
