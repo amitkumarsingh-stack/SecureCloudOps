@@ -24,7 +24,7 @@ A. **Kubenet Networking**
 * Network address translation (NAT) is then configured so that the pods can reach resources on the Azure virtual network.
 * The source IP address of the traffic is translated to the node’s primary IP address.
 
-**Use Kubenet when:
+**Use Kubenet when**:
 * You have limited IP address space.
 * Most of the pod communication is within the cluster.
 * You don’t need advanced AKS features such as virtual nodes or Azure Network Policy.
