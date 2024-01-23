@@ -16,6 +16,18 @@ Kubernetes networking enables you to configure communication within your k8s net
 * **Azure Container Networking Interface (CNI) networking**
 * **Azure Container Networking Interface (CNI)- Overlay networking**
 
+A. **Kubenet Networking**
+![Alt text](/_Docs/AKS_Planning_Document/images/kubenet.png)
+* Kubenet is a very basic, simple network plugin, on Linux only.
+* Nodes receive an IP address from the Azure virtual network subnet.
+* Pods receive an IP address from a logically different address space than the nodes’ Azure virtual network subnet.
+* Network address translation (NAT) is then configured so that the pods can reach resources on the Azure virtual network.
+* The source IP address of the traffic is translated to the node’s primary IP address.
+
+This approach reduces the number of IP addresses you need to reserve in your network space for pods to use.
+![image](https://github.com/amitkumarsingh-stack/SecureCloudOps/assets/152581728/71f0da4a-9bb4-47e0-b3bb-d178a3dd5e78)
+
+
 ```
 By default, AKS clusters use kubenet, and an Azure virtual network and subnet are created for you.
 ```
