@@ -17,6 +17,7 @@ Kubernetes networking enables you to configure communication within your k8s net
 * **Azure Container Networking Interface (CNI)- Overlay networking**
 
 A. **Kubenet Networking**
+
 ![Alt text](/_Docs/AKS_Planning_Document/images/kubenet.png)
 * Kubenet is a very basic, simple network plugin, on Linux only.
 * Nodes receive an IP address from the Azure virtual network subnet.
@@ -41,6 +42,30 @@ By default, AKS clusters use kubenet, and an Azure virtual network and subnet ar
 ```
 * Azure automatically provisions and configures virtual network resources for AKS clusters. The VNet and subnet are created in a dedicated resource group, automatically generated in your subscription by the Azure resource provider. By default, the AKS node resource group is named ```MC_resourcegroupname_clustername_location```.
 * We can manually create and configure the virtual network resources and attach to those resources when we create our AKS cluster. We can configure our Vnet and subnet at the time of the AKS creation.
+
+B. Azure CNI Networking
+
+![Alt text](/_Docs/AKS_Planning_Document/images/Azure_CNI.png)
+
+* IP addresses for the pods and the cluster’s nodes are assigned from the specified subnet within the virtual network.
+* Each node is configured with a primary IP address. By default, 30 additional IP addresses are pre-configured by Azure CNI that are assigned to pods scheduled on the node.
+* Our clusters can be as large as the IP address range you specify.
+* Clusters configured with Azure CNI networking require additional planning. The size of your virtual network and its subnet must accommodate the number of pods you plan to run and the number of nodes for the cluster.
+* For intercommunications with other Azure services, e.g., VM, the source address of the packets arrived from AKS backed by Azure CNI is the pod IP address. So, it adds transparency to a network.
+* We don’t have to manage user defined routes for pod connectivity.
+
+**Use Azure CNI when:**
+* You have available IP address space.
+* Resources outside the cluster need to reach pods directly.
+* Most of the pod communication is to resources outside of the cluster.
+* You don’t want to manage user defined routes for pod connectivity.
+* You need AKS advanced features such as virtual nodes or Azure Network Policy
+
+**Limitations & considerations for Azure CNI**
+* It allows for the separation of control and management of resources
+* It lets connecting to existing Azure resources, on-premises resources, or other services directly via IP addresses assigned to each pod
+* Virtual Nodes (vKubelet) are available only with Azure CNI
+* Windows nodes are available only with Azure CNI
 
 ### 2. Resource Management
 #### Sizing of Nodes: 
