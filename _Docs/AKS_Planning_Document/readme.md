@@ -68,7 +68,7 @@ B. **Azure CNI Networking**
 * Windows nodes are available only with Azure CNI
 
 ### 2. Resource Management
-#### Sizing of Nodes: 
+#### A. Sizing of Nodes: 
 what type of worker nodes should I use, and how many of them is a critical question which requires the analysis of the workloads deployed on your cluster to get the best values of it
 
 Choosing the right worker node size for your Kubernetes cluster is a crucial decision that depends on various factors such as workload characteristics, performance requirements, and budget constraints. Here are some considerations to help you determine the appropriate worker node size:
@@ -173,4 +173,31 @@ Guidance:
 
 * Tailor your node sizing to the specific resource requirements of your pods.
 * Follow cloud provider guidelines and best practices for optimal performance.
+
+B. **Cluster Operations**
+
+**Use Scale down mode to delete/deallocate nodes**
+
+Azure Kubernetes Service (AKS) does not have a built-in feature named "Scale-down Mode" specifically for deleting or deallocating nodes. However, AKS provides autoscaling capabilities that allow you to automatically adjust the number of nodes in your cluster based on resource usage.
+
+To achieve node deallocation or scale-down behavior, you can leverage the autoscaler combined with the ability to set minimum and maximum node counts. Here's a general approach using AKS autoscaler:
+* **Enable AKS Autoscaler**
+* **Define Minimum and Maximum Node Counts:**
+  - Specify the minimum and maximum number of nodes allowed in your cluster. The autoscaler will adjust the node count within this range based on workload demands.
+
+    Adjust the ```--min-count``` and ```--max-count``` parameters
+* **Set Resource Requests and Limits for Pods:**
+  - Ensure that your Kubernetes pods have resource requests and limits defined. This information is used by the cluster autoscaler to make decisions.
+  - Example pod YAML snippet:
+```
+  resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+```
+Remember that the autoscaler does not instantly scale down the cluster when the load decreases. It relies on certain metrics and thresholds to make scaling decisions. Additionally, the autoscaler considers both node and pod conditions before deciding to scale.
+
 
