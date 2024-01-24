@@ -67,6 +67,36 @@ B. **Azure CNI Networking**
 * Virtual Nodes (vKubelet) are available only with Azure CNI
 * Windows nodes are available only with Azure CNI
 
+C. **Plan IP addressing for your cluster**
+
+Planning IP addressing for your Azure Kubernetes Service (AKS) cluster involves determining the IP address ranges for the AKS nodes, the pods within the cluster, and the services provided by your applications. Here are the key components to consider:
+
+1. **Node IP Address Range**:
+  - Each AKS node in the cluster needs an IP address. Determine the range for the nodes by defining a subnet within your Azure Virtual Network.
+  - Specify the subnet address range when creating or updating your AKS cluster.
+
+2. **Pod IP Address Range**:
+  - AKS uses the Azure Container Networking Interface (CNI), allowing each pod to have its own IP address.
+  - The pod IP address range should be a subset of the Azure Virtual Network subnet range.
+  - AKS automatically assigns IP addresses from this range to the pods.
+
+3. **Service IP Address Range**:
+  - AKS assigns an internal IP address to each Kubernetes service.
+  - The service IP address range should be a subset of the Azure Virtual Network subnet range.
+  - When creating or updating the AKS cluster, specify the service address range.
+
+4. **Network Security Policies**:
+  - Consider whether you need to implement network security policies to control traffic between pods or services.
+  - Define and enforce network policies based on your security requirements.
+
+**Example Scenario**:
+
+Let's consider an example where you have an Azure Virtual Network with the address range **10.0.0.0/8**. You might plan your AKS IP addressing as follows:
+
+  - Node IP Address Range: **10.0.1.0/24** (a subnet within the Azure Virtual Network)
+  - Pod IP Address Range: **10.0.2.0/24** (a subset of the Azure Virtual Network subnet)
+  - Service IP Address Range: **10.0.3.0/24** (a subset of the Azure Virtual Network subnet)
+
 ### 2. Resource Management
 #### A. Sizing of Nodes: 
 what type of worker nodes should I use, and how many of them is a critical question which requires the analysis of the workloads deployed on your cluster to get the best values of it
