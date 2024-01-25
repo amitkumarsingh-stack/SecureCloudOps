@@ -97,6 +97,53 @@ Let's consider an example where you have an Azure Virtual Network with the addre
   - Pod IP Address Range: **10.0.2.0/24** (a subset of the Azure Virtual Network subnet)
   - Service IP Address Range: **10.0.3.0/24** (a subset of the Azure Virtual Network subnet)
 
+D. **Use an ingress controller to expose web-based apps instead of exposing them with LoadBalancer-type services**
+
+By using Ingress, you can efficiently manage external access to multiple services within your Kubernetes cluster without the need for a separate LoadBalancer for each service. Adjust the provided examples based on your specific use case and requirements.
+
+E. **Secure your exposed applications with a web application firewall (WAF)**
+
+If you plan to host exposed applications, to scan incoming traffic for potential attacks, use a web application firewall (WAF) such as Azure Application Gateway. These more advanced network resources can also route traffic beyond just HTTP and HTTPS connections or basic SSL termination.
+
+F. **Don't expose your load-balancer on Internet if not necessary:** There is almost no reason to directly expose the ingress entry point to Internet but by default AKS create a public one. Tell him to create an internal one only.
+
+G. **Control traffic flow with network policies:**
+Use network policies to allow or deny traffic to pods. By default, all traffic is allowed between pods within a cluster. For improved security, define rules that limit pod communication.
+
+Network policy is a Kubernetes feature that lets you control the traffic flow between pods. You can choose to allow or deny traffic based on settings such as assigned labels, namespace, or traffic port. The use of network policies gives a cloud-native way to control the flow of traffic. As pods are dynamically created in an AKS cluster, the required network policies can be automatically applied. Don't use Azure network security groups to control pod-to-pod traffic, use network policies.
+
+Here's a step-by-step guide:
+* Ensure that your Kubernetes cluster has Network Policy support enabled. Some Kubernetes distributions may have it enabled by default, while others may require specific configuration.
+* Create the namespace where you want to apply Network Policies:
+```
+kubectl create namespace your-namespace
+```
+* Define a Network Policy in YAML format and apply it within the specified namespace. Below is a simple example:
+```
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: your-namespace
+  name: allow-internal-communication
+spec:
+  podSelector:
+    matchLabels:
+      role: internal
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          role: internal
+```
+* This Network Policy allows pods with the label ```role: internal``` to communicate with each other within the ```your-namespace``` namespace.
+
+**Important Considerations:**
+* Ensure that your CNI provider and Kubernetes version support Network Policies.
+* Network Policies are namespace-scoped. Always apply them within the desired namespace.
+* Verify the effectiveness of your Network Policies by testing pod-to-pod communication within the namespace.
+
+By applying Network Policies within specific namespaces, you can control the communication between pods in a more granular manner, allowing for isolation and security based on your organizational or application structure.
+
 ### 2. Resource Management
 #### A. Sizing of Nodes: 
 what type of worker nodes should I use, and how many of them is a critical question which requires the analysis of the workloads deployed on your cluster to get the best values of it
